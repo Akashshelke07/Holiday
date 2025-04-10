@@ -1,23 +1,17 @@
 const jwt = require('jsonwebtoken');
-const User = require('../models/userModel'); // Adjust path based on your project
+const User = require('../models/userModel');
 
-const authenticateToken = (req, res, next) => {
-    const token = req.header('Authorization')?.split(' ')[1]; // Get token from Authorization header
+const protect = async (req, res, next) => {
+    let token = req.headers.authorization?.split(" ")[1];
+    if (!token) return res.status(401).json({ message: "Not authorized, no token" });
 
-    if (!token) {
-        return res.status(401).json({ message: 'Authentication required' });
-    }
-
-    jwt.verify(token, process.env.JWT_SECRET, async (err, decoded) => {
-        if (err) {
-            return res.status(403).json({ message: 'Invalid or expired token' });
-        }
-
-        res.status(201).json({message: "Done"});
-        // Optionally, attach user data to the request object
-        req.user = await User.findById(decoded.id);  // Assuming token contains user ID
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        req.user = await User.findById(decoded.id).select("-password");
         next();
-    });
+    } catch (error) {
+        res.status(401).json({ message: "Token failed" });
+    }
 };
 
-module.exports = authenticateToken;
+module.exports = { protect };

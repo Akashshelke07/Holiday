@@ -1,47 +1,53 @@
 const mongoose = require('mongoose');
 
-// Define the booking schema with required fields
 const bookingSchema = new mongoose.Schema({
     fullname: {
         type: String,
-        required: true,
+        required: [true, 'Full name is required'],
+        minlength: [3, 'Full name must be at least 3 characters'],
+        maxlength: [50, 'Full name must not exceed 50 characters'],
         trim: true
     },
     contact: {
         type: String,
-        required: true,
-        trim: true
+        required: [true, 'Contact number is required'],
+        match: [/^[0-9]{10}$/, 'Contact must be a 10-digit number']
     },
     email: {
         type: String,
-        required: true,
+        required: [true, 'Email is required'],
+        lowercase: true,
         trim: true,
-        lowercase: true
+        match: [/^\S+@\S+\.\S+$/, 'Please provide a valid email address']
     },
     destination: {
         type: String,
-        required: true,
-        trim: true
+        required: [true, 'Destination is required'],
+        minlength: [2, 'Destination must be at least 2 characters'],
+        maxlength: [100, 'Destination must not exceed 100 characters']
     },
     price: {
         type: Number,
-        required: true
+        required: [true, 'Price is required'],
+        min: [0, 'Price must be a positive number']
     },
     days: {
         type: Number,
-        required: true,
-        min: 1
+        required: [true, 'Number of days is required'],
+        min: [1, 'Minimum 1 day is required'],
+        max: [365, 'Cannot book more than 365 days']
     },
     totalCost: {
         type: Number,
-        required: true
+        required: [true, 'Total cost is required'],
+        min: [0, 'Total cost must be a positive number']
     },
-    // Optional: Reference to the User model (if you're associating the booking with a user)
     user: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'User' // Reference to the User model
+        ref: 'User'
     }
-}, { timestamps: true }); // Adds createdAt and updatedAt fields automatically
+}, {
+    timestamps: true
+});
 
-// Create the model
 module.exports = mongoose.model('Booking', bookingSchema);
